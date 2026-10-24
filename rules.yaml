@@ -1,0 +1,92 @@
+# ============================================================
+#  论文格式规则
+#  改这个文件就能适配你们学校的要求，不用改代码
+#
+#  字号对照（Word 里的中文号数 = 磅值）：
+#    初号 42   小初 36   一号 26   小一 24
+#    二号 22   小二 18   三号 16   小三 15
+#    四号 14   小四 12   五号 10.5 小五 9
+#
+#  行距：写 1.5 就是 1.5 倍行距；写 22 就是固定值 22 磅
+#  单位：页边距用厘米，段前段后用磅，缩进用字符数
+# ============================================================
+
+page:
+  size: A4
+  margin_top: 2.5        # 上边距（厘米）
+  margin_bottom: 2.5     # 下边距
+  margin_left: 3.0       # 左边距（装订侧通常更宽）
+  margin_right: 2.5      # 右边距
+  page_number: true      # 是否加页码
+  page_number_align: center   # left / center / right
+
+# ---------------- 正文 ----------------
+body:
+  font_cn: 宋体
+  font_en: Times New Roman
+  size: 12               # 小四
+  line_spacing: 1.5      # 1.5 倍行距
+  space_before: 0        # 段前（磅）
+  space_after: 0         # 段后（磅）
+  first_line_chars: 2    # 首行缩进 2 字符
+  align: justify         # left / center / right / justify
+
+# ---------------- 一级标题（章） ----------------
+h1:
+  font_cn: 黑体
+  font_en: Times New Roman
+  size: 16               # 三号
+  bold: true
+  align: center
+  space_before: 24
+  space_after: 18
+  line_spacing: 1.5
+  first_line_chars: 0
+
+# ---------------- 二级标题（节） ----------------
+h2:
+  font_cn: 黑体
+  font_en: Times New Roman
+  size: 14               # 四号
+  bold: true
+  align: left
+  space_before: 12
+  space_after: 6
+  line_spacing: 1.5
+  first_line_chars: 0
+
+# ---------------- 三级标题（小节） ----------------
+h3:
+  font_cn: 黑体
+  font_en: Times New Roman
+  size: 12               # 小四
+  bold: true
+  align: left
+  space_before: 6
+  space_after: 6
+  line_spacing: 1.5
+  first_line_chars: 0
+
+# ---------------- 图题、表题 ----------------
+caption:
+  font_cn: 宋体
+  font_en: Times New Roman
+  size: 10.5             # 五号
+  bold: false
+  align: center
+  space_before: 6
+  space_after: 6
+  line_spacing: 1.0
+  first_line_chars: 0
+
+# ---------------- 参考文献条目 ----------------
+reference:
+  font_cn: 宋体
+  font_en: Times New Roman
+  size: 10.5             # 五号
+  bold: false
+  align: left
+  space_before: 0
+  space_after: 0
+  line_spacing: 1.25
+  first_line_chars: 0

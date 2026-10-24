@@ -1,73 +1,106 @@
 # ============================================================
-#  论文格式规则
-#  改这个文件就能适配你们学校的要求，不用改代码
+#  默认格式：高职院校毕业论文（设计）
 #
-#  字号对照（Word 里的中文号数 = 磅值）：
-#    初号 42   小初 36   一号 26   小一 24
-#    二号 22   小二 18   三号 16   小三 15
-#    四号 14   小四 12   五号 10.5 小五 9
+#  依据：参考某高职院校《毕业论文(设计)应用与指导》"三、格式要求"
+#        原文："第一层次(章)题序和标题用小三号黑体字；第二层次(节)
+#        题序和标题用四号黑体字；第三层次(条)题序和标题用小四号黑体字；
+#        正文用宋体小四号(英文用 Times New Roman 体 12 号)；……页码
+#        律用小五号字标明；正文采用单倍行距，标准字符间距，A4 纸打印。"
 #
-#  行距：写 1.5 就是 1.5 倍行距；写 22 就是固定值 22 磅
-#  单位：页边距用厘米，段前段后用磅，缩进用字符数
+#  页边距与页码位置：指导书未给具体数值，取该院校下发模板的实测值
+#  （A4 / 上下 2.54 / 左右 3.17 / 装订线 0 / 页码居中）。
+#
+#  字号对照：小三=15  四号=14  小四=12  五号=10.5  小五=9
+#  行距：写 1.5 是倍数，写 22 是固定 22 磅
 # ============================================================
 
+# 文档结构预处理（检测到格式全是手动的，自动重建）
+normalize: auto
+
+# ---------------- 页面 ----------------
 page:
   size: A4
-  margin_top: 2.5        # 上边距（厘米）
-  margin_bottom: 2.5     # 下边距
-  margin_left: 3.0       # 左边距（装订侧通常更宽）
-  margin_right: 2.5      # 右边距
-  page_number: true      # 是否加页码
-  page_number_align: center   # left / center / right
+  margin_top: 2.54       # 上（厘米）
+  margin_bottom: 2.54    # 下
+  margin_left: 3.17      # 左
+  margin_right: 3.17     # 右
+  gutter: 0              # 装订线（学校模板为 0）
+  page_number: true      # 加页码
+  page_number_align: center
+  page_number_size: 9    # 小五号（指导书明确要求）
+
+# ---------------- 论文题名 ----------------
+# 依据排版示意图：「标题（黑体 加粗 小三号 居中排）」
+title:
+  font_cn: 黑体
+  font_en: Times New Roman
+  size: 15               # 小三
+  bold: true
+  align: center
+  space_before: 0
+  space_after: 18
+  line_spacing: 1.0
+  first_line_chars: 0
 
 # ---------------- 正文 ----------------
 body:
   font_cn: 宋体
-  font_en: Times New Roman
+  font_en: Times New Roman   # 英文 12 号
+  size: 12                   # 小四
+  line_spacing: 1.0          # 单倍行距（指导书明确要求）
+  space_before: 0
+  space_after: 0
+  first_line_chars: 2        # 首行缩进 2 字符（中文论文通例，指导书未单列）
+  align: justify
+
+# ---------------- 摘要 / 关键词标签 ----------------
+# 指导书排版示意图：「摘  要（黑体 小四号 顶格排）」「关键词（黑体 小四号 顶格排）」
+abstract_label:
+  font_cn: 黑体
   size: 12               # 小四
-  line_spacing: 1.5      # 1.5 倍行距
-  space_before: 0        # 段前（磅）
-  space_after: 0         # 段后（磅）
-  first_line_chars: 2    # 首行缩进 2 字符
-  align: justify         # left / center / right / justify
+  bold: false
 
 # ---------------- 一级标题（章） ----------------
+# 条文："第一层次(章)题序和标题用小三号黑体字"
 h1:
   font_cn: 黑体
   font_en: Times New Roman
-  size: 16               # 三号
+  size: 15               # 小三
   bold: true
-  align: center
-  space_before: 24
-  space_after: 18
-  line_spacing: 1.5
+  align: left
+  space_before: 12
+  space_after: 12
+  line_spacing: 1.0
   first_line_chars: 0
 
 # ---------------- 二级标题（节） ----------------
+# 条文："第二层次(节)题序和标题用四号黑体字"
 h2:
   font_cn: 黑体
   font_en: Times New Roman
   size: 14               # 四号
   bold: true
   align: left
-  space_before: 12
+  space_before: 6
   space_after: 6
-  line_spacing: 1.5
+  line_spacing: 1.0
   first_line_chars: 0
 
-# ---------------- 三级标题（小节） ----------------
+# ---------------- 三级标题（条） ----------------
+# 条文："第三层次(条)题序和标题用小四号黑体字"
 h3:
   font_cn: 黑体
   font_en: Times New Roman
   size: 12               # 小四
   bold: true
   align: left
-  space_before: 6
-  space_after: 6
-  line_spacing: 1.5
+  space_before: 3
+  space_after: 3
+  line_spacing: 1.0
   first_line_chars: 0
 
 # ---------------- 图题、表题 ----------------
+# 指导书只要求"图表按顺序编号并与正文对应"，未规定字号，按中文学位论文通例取五号
 caption:
   font_cn: 宋体
   font_en: Times New Roman
@@ -79,14 +112,15 @@ caption:
   line_spacing: 1.0
   first_line_chars: 0
 
-# ---------------- 参考文献条目 ----------------
+# ---------------- 参考文献 ----------------
+# 排版示意图："参考文献的内容全部用楷体 GB2312 小四号"
 reference:
-  font_cn: 宋体
+  font_cn: 楷体_GB2312
   font_en: Times New Roman
-  size: 10.5             # 五号
+  size: 12               # 小四
   bold: false
   align: left
   space_before: 0
   space_after: 0
-  line_spacing: 1.25
+  line_spacing: 1.0
   first_line_chars: 0

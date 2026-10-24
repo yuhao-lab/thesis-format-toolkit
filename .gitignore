@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 编辑器
+.vscode/
+.idea/
+
+# Office 临时锁文件
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 输出文件
+*-已排版.docx

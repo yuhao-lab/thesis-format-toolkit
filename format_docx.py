@@ -2,15 +2,12 @@
 """
 论文格式一键排版
 
-用法：
+命令行用法：
     python format_docx.py 我的论文.docx
     python format_docx.py 我的论文.docx -o 排好版.docx -r rules.yaml
 
-它会做四件事：
-    1. 按 rules.yaml 设置页面（纸张、页边距、页码）
-    2. 按 rules.yaml 改「正文」「标题 1/2/3」「题注」这些样式的格式
-    3. 统计你文档里每种样式用了多少段，告诉你有没有漏
-    4. 另存为新文件，原文件不动
+图形界面用法：
+    python gui.py
 """
 
 import argparse
@@ -106,15 +103,13 @@ def set_style_format(style, cfg):
 
 
 def add_page_number(section, align="center"):
-    """在页脚插入 PAGE 域，Word 打开会自动显示页码。
-    如果页脚本来就有文字（比如学校要求的页眉页脚说明），不覆盖，只提示。"""
+    """在页脚插入 PAGE 域。页脚已有文字时不覆盖，只记一笔。"""
     footer = section.footer
     footer.is_linked_to_previous = False
     p = footer.paragraphs[0] if footer.paragraphs else footer.add_paragraph()
 
     if p.text.strip():
-        print(f"  · 页脚已有内容「{p.text.strip()[:16]}」，跳过页码插入")
-        return
+        return f"页脚已有内容「{p.text.strip()[:16]}」，跳过页码"
 
     p.alignment = ALIGN.get(align, WD_ALIGN_PARAGRAPH.CENTER)
 
@@ -136,39 +131,26 @@ def add_page_number(section, align="center"):
 
     for node in (begin, instr, sep, placeholder, end):
         run._r.append(node)
+    return None
 
 
-def style_counts(doc):
-    return Counter(p.style.name for p in doc.paragraphs)
-
-
-def main():
-    ap = argparse.ArgumentParser(description="按规则文件一键排版 Word 论文")
-    ap.add_argument("input", help="要排版的 .docx 文件")
-    ap.add_argument("-o", "--output", help="输出文件名，默认在原名后加 -已排版")
-    ap.add_argument("-r", "--rules", default="rules.yaml", help="规则文件")
-    args = ap.parse_args()
-
-    src = Path(args.input)
-    if not src.exists():
-        raise SystemExit(f"找不到文件：{src}")
-
-    out = Path(args.output) if args.output else src.with_name(src.stem + "-已排版.docx")
-    rules = yaml.safe_load(Path(args.rules).read_text(encoding="utf-8"))
-
-    doc = Document(str(src))
+def apply_rules(doc, rules):
+    """把规则应用到已打开的文档对象，返回统计结果。"""
+    notes = []
 
     # ---------- 1. 页面 ----------
     page = rules.get("page", {})
     for section in doc.sections:
-        section.page_width = Cm(21.0)          # A4
+        section.page_width = Cm(21.0)
         section.page_height = Cm(29.7)
         section.top_margin = Cm(float(page.get("margin_top", 2.5)))
         section.bottom_margin = Cm(float(page.get("margin_bottom", 2.5)))
         section.left_margin = Cm(float(page.get("margin_left", 3.0)))
         section.right_margin = Cm(float(page.get("margin_right", 2.5)))
         if page.get("page_number", True):
-            add_page_number(section, page.get("page_number_align", "center"))
+            msg = add_page_number(section, page.get("page_number_align", "center"))
+            if msg:
+                notes.append(msg)
 
     # ---------- 2. 样式 ----------
     applied, missing = [], []
@@ -189,33 +171,74 @@ def main():
         set_style_format(target, cfg)
         applied.append(target.name)
 
-    # ---------- 3. 统计与提示 ----------
-    counts = style_counts(doc)
+    # ---------- 3. 统计 ----------
+    counts = Counter(p.style.name for p in doc.paragraphs)
     h1 = counts.get("Heading 1", 0) + counts.get("标题 1", 0)
     h2 = counts.get("Heading 2", 0) + counts.get("标题 2", 0)
     body = counts.get("Normal", 0) + counts.get("正文", 0)
 
+    return {
+        "applied": list(dict.fromkeys(applied)),
+        "missing": missing,
+        "h1": h1,
+        "h2": h2,
+        "body": body,
+        "notes": notes,
+    }
+
+
+def process(src, out, rules):
+    """读文件 → 应用规则 → 保存。返回统计结果。"""
+    src, out = Path(src), Path(out)
+    if not src.exists():
+        raise FileNotFoundError(f"找不到文件：{src}")
+    if src.suffix.lower() != ".docx":
+        raise ValueError("只支持 .docx 文件。如果是 .doc，先在 Word 里另存为 .docx。")
+
+    doc = Document(str(src))
+    stats = apply_rules(doc, rules)
+    doc.save(str(out))
+    return stats
+
+
+def load_rules(path):
+    return yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+
+
+def main():
+    ap = argparse.ArgumentParser(description="按规则文件一键排版 Word 论文")
+    ap.add_argument("input", help="要排版的 .docx 文件")
+    ap.add_argument("-o", "--output", help="输出文件名，默认在原名后加 -已排版")
+    ap.add_argument("-r", "--rules", default="rules.yaml", help="规则文件")
+    args = ap.parse_args()
+
+    src = Path(args.input)
+    out = Path(args.output) if args.output else src.with_name(src.stem + "-已排版.docx")
+    rules = load_rules(args.rules)
+
+    stats = process(src, out, rules)
+
     print("=" * 52)
     print("排版完成")
     print("=" * 52)
-    print(f"已应用样式：{'、'.join(dict.fromkeys(applied))}")
-    if missing:
-        print(f"文档里没有这些样式，已跳过：{'、'.join(missing)}")
+    print(f"已应用样式：{'、'.join(stats['applied'])}")
+    if stats["missing"]:
+        print(f"文档里没有这些样式，已跳过：{'、'.join(stats['missing'])}")
+    for n in stats["notes"]:
+        print(f"  · {n}")
     print()
-    print(f"一级标题段落：{h1}")
-    print(f"二级标题段落：{h2}")
-    print(f"正文段落：    {body}")
+    print(f"一级标题段落：{stats['h1']}")
+    print(f"二级标题段落：{stats['h2']}")
+    print(f"正文段落：    {stats['body']}")
     print()
 
-    if h1 == 0:
+    if stats["h1"] == 0:
         print("⚠ 没有检测到任何「标题 1」段落。")
         print("  说明你的论文是用加粗放大手动做的标题，不是 Word 的标题样式。")
         print("  这种情况下本工具只能改正文，标题层级改不了。")
         print("  解决：在 Word 里选中标题 → 开始 → 样式 → 标题 1（或按 Ctrl+Alt+1）。")
         print()
 
-    # ---------- 4. 保存 ----------
-    doc.save(str(out))
     print(f"已保存：{out}")
 
 
